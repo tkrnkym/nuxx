@@ -1,5 +1,5 @@
 import { type FormEvent, useCallback, useRef, useState } from "react";
-import { Paperclip, Smile, X } from "lucide-react";
+import { CaseSensitive, Paperclip, Smile, X } from "lucide-react";
 
 import { useMyPubkey, useSendMessage } from "@/features/chat/use-chat";
 import { formatBytes } from "@/features/chat/upload";
@@ -18,6 +18,10 @@ import {
   RichComposerEditor,
   type RichEditorHandle,
 } from "@/features/messages/ui/RichComposerEditor";
+import {
+  readToolbarPreference,
+  writeToolbarPreference,
+} from "@/features/messages/lib/toolbar-preference";
 import { useDraft } from "@/features/messages/use-draft";
 import { ComposerTimeoutBanner } from "@/features/moderation/ui/ComposerTimeoutBanner";
 import {
@@ -93,6 +97,9 @@ export function MessageComposer({
   const directory = useDirectory();
   const directoryProfiles = useProfiles([]);
   const emojiCatalog = useEmojiCatalog();
+  // Shown unless the reader has turned it off — see `toolbar-preference` for
+  // why that is the default and why the choice is local.
+  const [showToolbar, setShowToolbar] = useState(readToolbarPreference);
   const [emojiOpen, setEmojiOpen] = useState(false);
   /** The `:name` token being typed, which completes without opening the grid. */
   const [emojiQuery, setEmojiQuery] = useState<{
@@ -361,7 +368,10 @@ export function MessageComposer({
         </PopoverContent>
       </Popover>
 
-      <div className="flex items-center gap-2">
+      {/* Bottom-aligned: with the formatting toolbar shown the field is two rows
+          tall, and centring would float the send button against the middle of
+          it rather than beside the line being typed. */}
+      <div className="flex items-end gap-2">
         <input
           ref={fileInput}
           type="file"
@@ -382,6 +392,23 @@ export function MessageComposer({
           onClick={() => fileInput.current?.click()}
         >
           <Paperclip aria-hidden className="size-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="書式ツールバー"
+          aria-pressed={showToolbar}
+          className={showToolbar ? "bg-accent text-foreground" : undefined}
+          data-testid="toggle-composer-toolbar"
+          onClick={() =>
+            setShowToolbar((visible) => {
+              writeToolbarPreference(!visible);
+              return !visible;
+            })
+          }
+        >
+          <CaseSensitive aria-hidden className="size-4" />
         </Button>
         <Button
           type="button"
@@ -431,6 +458,7 @@ export function MessageComposer({
           }}
           onSubmit={() => submit()}
           placeholder={label}
+          showToolbar={showToolbar}
         />
         <Button
           type="submit"

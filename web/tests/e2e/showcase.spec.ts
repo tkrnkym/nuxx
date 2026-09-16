@@ -560,3 +560,55 @@ test("an existing reaction can be joined, then withdrawn", async ({ page }) => {
   await expect(chip).toContainText(String(before));
   await expect(chip).toHaveAttribute("aria-pressed", "false");
 });
+
+// --- Channel members -------------------------------------------------------
+
+test("the header facepile opens the channel's people and agents", async ({
+  page,
+}) => {
+  await page.goto(`/c/${CH_DEV}`);
+
+  const facepile = page.getByTestId("channel-members-button");
+  await expect(facepile).toBeVisible();
+  await facepile.click();
+
+  const dialog = page.getByTestId("channel-members-dialog");
+  await expect(dialog).toBeVisible();
+  // #dev has three people on its NIP-29 member list — the reader among them —
+  // and two agents registered to it: the two sources this list puts in one place.
+  await expect(dialog.getByText("メンバー · 3")).toBeVisible();
+  await expect(dialog.getByText("エージェント · 2")).toBeVisible();
+  await expect(dialog.getByText("レビュー係")).toBeVisible();
+  await expect(dialog.getByText("トリアージ")).toBeVisible();
+
+  // A native `<dialog>` stays in the document when it closes, so the assertion
+  // is on visibility rather than on the element being gone.
+  await page.getByTestId("channel-members-dialog-close").click();
+  await expect(dialog).toBeHidden();
+});
+
+// --- Composer --------------------------------------------------------------
+
+test("the composer shows its formatting controls by default", async ({
+  page,
+}) => {
+  await page.goto(`/c/${CH_DEV}`);
+
+  const composer = page.getByTestId("rich-composer");
+  await expect(composer.getByRole("button", { name: "太字" })).toBeVisible();
+
+  // Bold applies to what is typed after it, and the button reports the state.
+  const field = composer.getByRole("textbox");
+  await field.click();
+  await composer.getByRole("button", { name: "太字" }).click();
+  await expect(composer.getByRole("button", { name: "太字" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+
+  // And the reader can put them away; the toggle is what brings them back.
+  await page.getByTestId("toggle-composer-toolbar").click();
+  await expect(composer.getByRole("button", { name: "太字" })).toHaveCount(0);
+  await page.getByTestId("toggle-composer-toolbar").click();
+  await expect(composer.getByRole("button", { name: "太字" })).toBeVisible();
+});

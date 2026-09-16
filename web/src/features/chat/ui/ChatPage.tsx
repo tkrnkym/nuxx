@@ -20,6 +20,7 @@ import { usePresence, useTyping } from "@/features/chat/use-presence";
 import { useEmojiCatalog } from "@/features/emoji/use-emoji";
 import { HuddleBar } from "@/features/huddle/ui/HuddleBar";
 import { resolveChannelLabel } from "@/features/channels/dm-label";
+import { ChannelMembersButton } from "@/features/channels/ui/ChannelMembersButton";
 import { computeChannelUnreadMarker } from "@/features/messages/lib/unread-marker";
 import { useMuteList } from "@/features/moderation/use-moderation";
 import { useProfiles } from "@/features/profile/profile-store";
@@ -317,6 +318,12 @@ export function ChatPage({
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            {channelId && !isDm && (
+              <ChannelMembersButton
+                channelId={channelId}
+                channelLabel={activeChannel?.name ?? null}
+              />
+            )}
             <ReadStateNotice
               canSync={readState.canSync}
               error={readState.error}

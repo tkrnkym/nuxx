@@ -16,6 +16,7 @@ import {
 } from "@/features/profile/profile-model";
 import type { CustomEmoji, EmojiCatalog } from "@/features/emoji/emoji-model";
 import { cn } from "@/shared/lib/cn";
+import { PresenceBadge } from "@/shared/ui/PresenceBadge";
 import { PubkeyAvatar } from "@/shared/ui/PubkeyAvatar";
 
 /** Width of the avatar gutter. Continuations align their time inside it. */
@@ -48,28 +49,6 @@ export interface MessageRowActions {
    */
   profiles: ProfileLookup;
   pending?: boolean;
-}
-
-/**
- * Presence marker beside an author.
- *
- * Unknown presence renders nothing rather than a grey dot: the relay only knows
- * who is currently connected, so "no status" means "not established", not
- * "offline", and showing them as away would be a claim the client cannot make.
- */
-function PresenceBadge({ status }: { status: string | null }) {
-  if (status === null || status === "offline") return null;
-  return (
-    <span
-      aria-label={`Status: ${status}`}
-      className={cn(
-        "absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full ring-2 ring-background",
-        status === "online" ? "bg-primary" : "bg-muted-foreground",
-      )}
-      role="img"
-      title={status}
-    />
-  );
 }
 
 /**
