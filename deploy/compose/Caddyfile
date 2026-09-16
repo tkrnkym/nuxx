@@ -1,3 +1,28 @@
+# The `www` host exists only to send people to the canonical one.
+#
+# Nuxx derives a community's boundary from the host it was reached on, so two
+# hostnames serving the same relay are not two ways of spelling one address —
+# they are two communities. Redirecting rather than proxying keeps that single
+# canonical origin, and keeps one set of cookies, one CORS origin, and one
+# relay URL rather than a near-duplicate pair.
+#
+# Declared first so the more specific host wins regardless of ordering rules.
+# NUXX_DOMAIN must be the apex for this to be right: set it to `nuxx.ai`, never
+# `www.nuxx.ai`, or this block asks for `www.www.nuxx.ai`.
+#
+# Two things outside this file have to hold, or the block never runs:
+#   - `www` needs its own A/AAAA record pointing at this host. Caddy answers the
+#     ACME challenge on the address DNS sends it to, so without the record it
+#     cannot get a certificate and the browser fails before any redirect.
+#   - Nothing else may terminate TLS for `www` first. A CDN or registrar
+#     forwarding rule in front of this stack answers before Caddy does, and the
+#     redirect belongs there instead.
+www.{$NUXX_DOMAIN} {
+  # 301, and browsers cache it hard — deliberate for a canonical host, and the
+  # reason to be sure the apex is the one you want before shipping it.
+  redir https://{$NUXX_DOMAIN}{uri} permanent
+}
+
 {$NUXX_DOMAIN} {
   encode zstd gzip
 

@@ -26,6 +26,13 @@ export const routes = rootRoute("root.tsx", [
   // sidebar full of empty channels is the wrong first thing to show someone who
   // has not decided whether to install a signer yet.
   route("/welcome", "welcome.tsx"),
+  // The waitlist is outside the shell for the same reason: whoever is filling it
+  // in has no account on this relay yet, so there is no session to open and no
+  // community to put in the rail. `/waitlist/thanks` is a route rather than a
+  // panel inside the dialog so the confirmation has an address — one an
+  // analytics goal can be set on, and one that survives a reload.
+  route("/waitlist", "waitlist.tsx"),
+  route("/waitlist/thanks", "waitlist.thanks.tsx"),
   // The repo browser is a separate destination, deliberately outside the shell:
   // it reads git over HTTP and needs no relay socket at all.
   route("/repos", "repos.tsx"),

@@ -114,6 +114,22 @@ COPY admin-web/package.json admin-web/
 RUN pnpm install --frozen-lockfile --filter nuxx-web --filter nuxx-admin-web
 COPY web/ web/
 COPY admin-web/ admin-web/
+
+# Waitlist delivery, baked into the bundle. Vite inlines VITE_* at build time,
+# so this cannot be a runtime env var on the relay — the image carries whatever
+# was passed here. Declared last so a key change rebuilds only the bundle, not
+# the dependency install above.
+#
+# Both default to empty, which is the honest state for an ordinary build: the
+# form then says on its opening screen that no destination is configured rather
+# than accepting six answers and dropping them. The access key is a routing
+# token for one fixed destination address, not a credential — it ships in the
+# JavaScript either way, so its appearance in image history costs nothing.
+ARG VITE_WAITLIST_ACCESS_KEY=
+ARG VITE_WAITLIST_ENDPOINT=
+ENV VITE_WAITLIST_ACCESS_KEY=${VITE_WAITLIST_ACCESS_KEY} \
+    VITE_WAITLIST_ENDPOINT=${VITE_WAITLIST_ENDPOINT}
+
 RUN pnpm -C web build && pnpm -C admin-web build
 
 # ─── Stage 5: shared runtime ────────────────────────────────────────────────

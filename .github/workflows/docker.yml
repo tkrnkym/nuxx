@@ -170,6 +170,9 @@ jobs:
           context: .
           file: ./Dockerfile
           target: runtime
+          build-args: |
+            VITE_WAITLIST_ACCESS_KEY=${{ secrets.VITE_WAITLIST_ACCESS_KEY }}
+            VITE_WAITLIST_ENDPOINT=${{ vars.VITE_WAITLIST_ENDPOINT }}
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           # Push by digest, not by tag — the merge job assembles the tags
@@ -188,6 +191,9 @@ jobs:
           context: .
           file: ./Dockerfile
           target: runtime-debug
+          build-args: |
+            VITE_WAITLIST_ACCESS_KEY=${{ secrets.VITE_WAITLIST_ACCESS_KEY }}
+            VITE_WAITLIST_ENDPOINT=${{ vars.VITE_WAITLIST_ENDPOINT }}
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}

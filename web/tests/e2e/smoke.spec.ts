@@ -3766,3 +3766,111 @@ test("the profile typed during onboarding is published on the way out", async ({
   await page.getByTestId("onboarding-next").click();
   await expect(page).toHaveURL(/\/$/);
 });
+
+/**
+ * The private-beta waitlist.
+ *
+ * The form's value is in the interaction — one question at a time, Enter to
+ * advance, a choice that advances itself — and none of that is reachable from
+ * the pure step machine its unit tests cover. Deliberately says nothing about
+ * whether a submission is delivered: that depends on build-time configuration,
+ * and a test asserting either way would break the moment the key is set.
+ */
+test.describe("private-beta waitlist", () => {
+  /** Open the popup and get past the intro to the first question. */
+  async function openForm(page: import("@playwright/test").Page) {
+    await page.goto("/waitlist");
+    const dialog = page.getByTestId("waitlist-dialog");
+    await expect(dialog).toBeVisible();
+    await page.getByTestId("waitlist-start").click();
+    return dialog;
+  }
+
+  test("asks the six questions one at a time, in the order specified", async ({
+    page,
+  }) => {
+    const dialog = await openForm(page);
+    const heading = (name: string) => dialog.getByRole("heading", { name });
+
+    await expect(heading("メールアドレス")).toBeVisible();
+    await expect(dialog.getByText("1 / 6")).toBeVisible();
+    await dialog
+      .getByRole("textbox", { name: "メールアドレス" })
+      .fill("taro@example.co.jp");
+    await page.getByTestId("waitlist-next").click();
+
+    await expect(heading("担当者名")).toBeVisible();
+    await dialog.getByLabel("ファーストネーム").fill("太郎");
+    await dialog.getByLabel("ラストネーム").fill("山田");
+    await page.getByTestId("waitlist-next").click();
+
+    await expect(heading("企業名")).toBeVisible();
+    await dialog
+      .getByRole("textbox", { name: "企業名" })
+      .fill("株式会社ヌックス");
+    await page.getByTestId("waitlist-next").click();
+
+    await expect(heading("社員数")).toBeVisible();
+    await dialog.getByText("11〜50名", { exact: true }).click();
+
+    await expect(heading("現時点で利用しているAI予算")).toBeVisible();
+    await dialog.getByText("10〜50万円 / 月", { exact: true }).click();
+
+    await expect(heading("ご不明点や相談")).toBeVisible();
+    await expect(dialog.getByText("6 / 6")).toBeVisible();
+    // Focused like every other step, including this one — it is a textarea
+    // rather than an input, and arriving here from a choice means the control
+    // that had focus was just unmounted.
+    await page.keyboard.type("相談したいことがあります。");
+    await expect(
+      dialog.getByRole("textbox", { name: "ご不明点や相談" }),
+    ).toHaveValue("相談したいことがあります。");
+    // The last question is the optional one, so the submit is already live.
+    await expect(page.getByTestId("waitlist-next")).toBeEnabled();
+  });
+
+  test("a required answer left empty holds the form on its question", async ({
+    page,
+  }) => {
+    const dialog = await openForm(page);
+    await page.getByTestId("waitlist-next").click();
+
+    await expect(dialog.getByRole("alert")).toHaveText("この項目は必須です。");
+    await expect(dialog.getByText("1 / 6")).toBeVisible();
+  });
+
+  test("a malformed address is caught before the form moves on", async ({
+    page,
+  }) => {
+    const dialog = await openForm(page);
+    await dialog.getByRole("textbox", { name: "メールアドレス" }).fill("taro@");
+    await page.getByTestId("waitlist-next").click();
+
+    await expect(dialog.getByRole("alert")).toHaveText(
+      "メールアドレスの形式をご確認ください。",
+    );
+    await expect(dialog.getByText("1 / 6")).toBeVisible();
+  });
+
+  test("Enter advances the form, so the keyboard never leaves the field", async ({
+    page,
+  }) => {
+    const dialog = await openForm(page);
+    // Typed without clicking first: entering a question focuses its field.
+    await page.keyboard.type("taro@example.co.jp");
+    await page.keyboard.press("Enter");
+
+    await expect(
+      dialog.getByRole("heading", { name: "担当者名" }),
+    ).toBeVisible();
+  });
+
+  test("the thank-you screen has a URL of its own", async ({ page }) => {
+    // Reachable directly, which is the point: it survives the reload people
+    // perform when they are unsure a form went through.
+    await page.goto("/waitlist/thanks");
+    await expect(
+      page.getByRole("heading", { name: "ご登録ありがとうございました。" }),
+    ).toBeVisible();
+  });
+});

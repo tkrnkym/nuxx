@@ -6,8 +6,10 @@
 
 import { Route as rootRouteImport } from "./routes/root";
 import { Route as welcomeRouteImport } from "./routes/welcome";
+import { Route as waitlistRouteImport } from "./routes/waitlist";
 import { Route as reposRouteImport } from "./routes/repos";
 import { Route as shellRouteImport } from "./routes/shell";
+import { Route as waitlistDotthanksRouteImport } from "./routes/waitlist.thanks";
 import { Route as reposDotrepoIdRouteImport } from "./routes/repos.$repoId";
 import { Route as inviteDotcodeRouteImport } from "./routes/invite.$code";
 import { Route as workflowsRouteImport } from "./routes/workflows";
@@ -31,6 +33,11 @@ const welcomeRoute = welcomeRouteImport.update({
   path: "/welcome",
   getParentRoute: () => rootRouteImport,
 } as any);
+const waitlistRoute = waitlistRouteImport.update({
+  id: "/waitlist",
+  path: "/waitlist",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const reposRoute = reposRouteImport.update({
   id: "/repos",
   path: "/repos",
@@ -38,6 +45,11 @@ const reposRoute = reposRouteImport.update({
 } as any);
 const shellRoute = shellRouteImport.update({
   id: "/_shell",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const waitlistDotthanksRoute = waitlistDotthanksRouteImport.update({
+  id: "/waitlist/thanks",
+  path: "/waitlist/thanks",
   getParentRoute: () => rootRouteImport,
 } as any);
 const reposDotrepoIdRoute = reposDotrepoIdRouteImport.update({
@@ -130,6 +142,7 @@ const reposDotrepoIdDotblobDotsplatRoute =
 export interface FileRoutesByFullPath {
   "/": typeof indexRoute;
   "/repos": typeof reposRoute;
+  "/waitlist": typeof waitlistRoute;
   "/welcome": typeof welcomeRoute;
   "/agents": typeof agentsRoute;
   "/browse": typeof browseRoute;
@@ -143,6 +156,7 @@ export interface FileRoutesByFullPath {
   "/workflows": typeof workflowsRoute;
   "/invite/$code": typeof inviteDotcodeRoute;
   "/repos/$repoId": typeof reposDotrepoIdRoute;
+  "/waitlist/thanks": typeof waitlistDotthanksRoute;
   "/c/$channelId": typeof chatDotchannelIdRoute;
   "/projects/$projectId": typeof projectsDotprojectIdRoute;
   "/workflows/$workflowId": typeof workflowsDotworkflowIdRoute;
@@ -150,6 +164,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   "/repos": typeof reposRoute;
+  "/waitlist": typeof waitlistRoute;
   "/welcome": typeof welcomeRoute;
   "/": typeof indexRoute;
   "/agents": typeof agentsRoute;
@@ -164,6 +179,7 @@ export interface FileRoutesByTo {
   "/workflows": typeof workflowsRoute;
   "/invite/$code": typeof inviteDotcodeRoute;
   "/repos/$repoId": typeof reposDotrepoIdRoute;
+  "/waitlist/thanks": typeof waitlistDotthanksRoute;
   "/c/$channelId": typeof chatDotchannelIdRoute;
   "/projects/$projectId": typeof projectsDotprojectIdRoute;
   "/workflows/$workflowId": typeof workflowsDotworkflowIdRoute;
@@ -173,6 +189,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport;
   "/_shell": typeof shellRouteWithChildren;
   "/repos": typeof reposRoute;
+  "/waitlist": typeof waitlistRoute;
   "/welcome": typeof welcomeRoute;
   "/_shell/": typeof indexRoute;
   "/_shell/agents": typeof agentsRoute;
@@ -187,6 +204,7 @@ export interface FileRoutesById {
   "/_shell/workflows": typeof workflowsRoute;
   "/invite/$code": typeof inviteDotcodeRoute;
   "/repos/$repoId": typeof reposDotrepoIdRoute;
+  "/waitlist/thanks": typeof waitlistDotthanksRoute;
   "/_shell/c/$channelId": typeof chatDotchannelIdRoute;
   "/_shell/projects/$projectId": typeof projectsDotprojectIdRoute;
   "/_shell/workflows/$workflowId": typeof workflowsDotworkflowIdRoute;
@@ -197,6 +215,7 @@ export interface FileRouteTypes {
   fullPaths:
     | "/"
     | "/repos"
+    | "/waitlist"
     | "/welcome"
     | "/agents"
     | "/browse"
@@ -210,6 +229,7 @@ export interface FileRouteTypes {
     | "/workflows"
     | "/invite/$code"
     | "/repos/$repoId"
+    | "/waitlist/thanks"
     | "/c/$channelId"
     | "/projects/$projectId"
     | "/workflows/$workflowId"
@@ -217,6 +237,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/repos"
+    | "/waitlist"
     | "/welcome"
     | "/"
     | "/agents"
@@ -231,6 +252,7 @@ export interface FileRouteTypes {
     | "/workflows"
     | "/invite/$code"
     | "/repos/$repoId"
+    | "/waitlist/thanks"
     | "/c/$channelId"
     | "/projects/$projectId"
     | "/workflows/$workflowId"
@@ -239,6 +261,7 @@ export interface FileRouteTypes {
     | "__root__"
     | "/_shell"
     | "/repos"
+    | "/waitlist"
     | "/welcome"
     | "/_shell/"
     | "/_shell/agents"
@@ -253,6 +276,7 @@ export interface FileRouteTypes {
     | "/_shell/workflows"
     | "/invite/$code"
     | "/repos/$repoId"
+    | "/waitlist/thanks"
     | "/_shell/c/$channelId"
     | "/_shell/projects/$projectId"
     | "/_shell/workflows/$workflowId"
@@ -262,9 +286,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   shellRoute: typeof shellRouteWithChildren;
   reposRoute: typeof reposRoute;
+  waitlistRoute: typeof waitlistRoute;
   welcomeRoute: typeof welcomeRoute;
   inviteDotcodeRoute: typeof inviteDotcodeRoute;
   reposDotrepoIdRoute: typeof reposDotrepoIdRoute;
+  waitlistDotthanksRoute: typeof waitlistDotthanksRoute;
   reposDotrepoIdDotblobDotsplatRoute: typeof reposDotrepoIdDotblobDotsplatRoute;
 }
 
@@ -275,6 +301,13 @@ declare module "@tanstack/react-router" {
       path: "/welcome";
       fullPath: "/welcome";
       preLoaderRoute: typeof welcomeRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/waitlist": {
+      id: "/waitlist";
+      path: "/waitlist";
+      fullPath: "/waitlist";
+      preLoaderRoute: typeof waitlistRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/repos": {
@@ -289,6 +322,13 @@ declare module "@tanstack/react-router" {
       path: "";
       fullPath: "/";
       preLoaderRoute: typeof shellRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/waitlist/thanks": {
+      id: "/waitlist/thanks";
+      path: "/waitlist/thanks";
+      fullPath: "/waitlist/thanks";
+      preLoaderRoute: typeof waitlistDotthanksRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/repos/$repoId": {
@@ -452,9 +492,11 @@ const shellRouteWithChildren = shellRoute._addFileChildren(shellRouteChildren);
 const rootRouteChildren: RootRouteChildren = {
   shellRoute: shellRouteWithChildren,
   reposRoute: reposRoute,
+  waitlistRoute: waitlistRoute,
   welcomeRoute: welcomeRoute,
   inviteDotcodeRoute: inviteDotcodeRoute,
   reposDotrepoIdRoute: reposDotrepoIdRoute,
+  waitlistDotthanksRoute: waitlistDotthanksRoute,
   reposDotrepoIdDotblobDotsplatRoute: reposDotrepoIdDotblobDotsplatRoute,
 };
 export const routeTree = rootRouteImport

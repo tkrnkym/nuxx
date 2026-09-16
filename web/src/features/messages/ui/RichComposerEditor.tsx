@@ -3,6 +3,7 @@ import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useImperativeHandle, useRef, type Ref } from "react";
 
+import { ComposerToolbar } from "@/features/messages/ui/ComposerToolbar";
 import { cn } from "@/shared/lib/cn";
 
 /**
@@ -44,6 +45,7 @@ export function RichComposerEditor({
   onKeyDown,
   onSubmit,
   placeholder,
+  showToolbar = false,
 }: {
   ariaLabel: string;
   className?: string;
@@ -63,6 +65,15 @@ export function RichComposerEditor({
   onKeyDown?: EditorKeyHandler;
   onSubmit: () => void;
   placeholder: string;
+  /**
+   * Show the formatting controls above the field.
+   *
+   * The toolbar lives here rather than in the composer because the editor
+   * instance does — the commands it runs are the editor's, and handing that
+   * instance out would make every consumer responsible for not holding it past
+   * a remount.
+   */
+  showToolbar?: boolean;
 }) {
   /**
    * The current callbacks, read through refs.
@@ -170,6 +181,7 @@ export function RichComposerEditor({
       )}
       data-testid="rich-composer"
     >
+      {showToolbar && <ComposerToolbar disabled={disabled} editor={editor} />}
       <EditorContent editor={editor} />
     </div>
   );

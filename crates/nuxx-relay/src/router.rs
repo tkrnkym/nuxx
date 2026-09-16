@@ -218,8 +218,25 @@ fn is_invite_landing_path(path: &str) -> bool {
         .is_some_and(|code| !code.is_empty() && !code.contains('/'))
 }
 
+/// The private-beta waitlist form and the screen shown after it is submitted.
+///
+/// Served like the invite landing page rather than behind `serve_git_web_gui`:
+/// both are public entry points reached by people with no account on this relay
+/// and no reason to know what a repo browser is, so gating them on an unrelated
+/// feature flag would take the form offline on most deployments.
+///
+/// `/waitlist/thanks` matters as much as `/waitlist` here. It is a real URL
+/// precisely so it survives a reload, and a 404 on refresh is the one failure
+/// that reaches someone at the moment they are checking whether their
+/// submission went through.
+fn is_waitlist_path(path: &str) -> bool {
+    path == "/waitlist" || path == "/waitlist/thanks"
+}
+
 fn should_serve_spa(path: &str, serve_git_web_gui: bool) -> bool {
-    is_invite_landing_path(path) || (serve_git_web_gui && is_git_web_gui_path(path))
+    is_invite_landing_path(path)
+        || is_waitlist_path(path)
+        || (serve_git_web_gui && is_git_web_gui_path(path))
 }
 
 fn is_git_web_gui_path(path: &str) -> bool {
@@ -480,9 +497,23 @@ mod tests {
     }
 
     #[test]
-    fn invite_is_always_served_but_git_gui_requires_opt_in() {
+    fn waitlist_paths_are_exactly_the_two_the_client_routes() {
+        assert!(is_waitlist_path("/waitlist"));
+        assert!(is_waitlist_path("/waitlist/thanks"));
+        // No prefix match: the client routes these two and nothing beneath
+        // them, so anything else under /waitlist is a 404, not a blank SPA.
+        assert!(!is_waitlist_path("/waitlist/"));
+        assert!(!is_waitlist_path("/waitlist/thanks/extra"));
+        assert!(!is_waitlist_path("/waitlisted"));
+    }
+
+    #[test]
+    fn invite_and_waitlist_are_always_served_but_git_gui_requires_opt_in() {
         assert!(should_serve_spa("/invite/payload.mac", false));
         assert!(should_serve_spa("/invite/payload.mac", true));
+        // Public entry points, so they do not wait on the repo browser's flag.
+        assert!(should_serve_spa("/waitlist", false));
+        assert!(should_serve_spa("/waitlist/thanks", false));
         assert!(!should_serve_spa("/", false));
         assert!(!should_serve_spa("/repos/example", false));
         assert!(should_serve_spa("/", true));
